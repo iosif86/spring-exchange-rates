@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.constraints.Positive;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -27,5 +29,17 @@ public class ExchangeController {
     @GetMapping("/rates")
     public ResponseEntity<Map<String, Double>> getRates(@RequestParam Currency from){
         return new ResponseEntity<>(exchangeService.getExchangeRates(from),HttpStatus.OK) ;
+    }
+
+    @GetMapping("/conversion")
+    public ResponseEntity<Double> getConversionToCurrency(@RequestParam Currency from,
+                                                          @RequestParam Currency to, @RequestParam @Positive(message = "Amount must be greater than 0 !") Double amount){
+        return new ResponseEntity<>(exchangeService.convertToCurrency(from, to, amount), HttpStatus.OK);
+    }
+
+    @GetMapping("/conversions")
+    public ResponseEntity<Map<String, Double>> getConversionToCurrencies(@RequestParam Currency from,
+                                                                         @RequestParam List<Currency> to, @RequestParam @Positive(message = "Amount must be greater than 0 !") Double amount){
+        return new ResponseEntity<>(exchangeService.convertToCurrencies(from, to, amount), HttpStatus.OK);
     }
 }
