@@ -2,6 +2,7 @@ package bv.group.exchangerates.controllers;
 
 import bv.group.exchangerates.api.v1.model.enums.Currency;
 import bv.group.exchangerates.services.ExchangeService;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -37,6 +38,7 @@ public class ExchangeController {
             @ApiResponse(responseCode = "404", description = "An error occurred!",
                     content = @Content) })
     @GetMapping("/rate")
+    @RateLimiter(name = "rateLimit")
     public ResponseEntity<Map<String, Double>> getRate(@RequestParam Currency from,
                                                        @RequestParam Currency to){
         return new ResponseEntity<>(exchangeService.getExchangeRate(from, to), HttpStatus.OK);
@@ -52,6 +54,7 @@ public class ExchangeController {
             @ApiResponse(responseCode = "404", description = "An error occurred!",
                     content = @Content) })
     @GetMapping("/rates")
+    @RateLimiter(name = "rateLimit")
     public ResponseEntity<Map<String, Double>> getRates(@RequestParam Currency from){
         return new ResponseEntity<>(exchangeService.getExchangeRates(from),HttpStatus.OK) ;
     }
@@ -68,6 +71,7 @@ public class ExchangeController {
             @ApiResponse(responseCode = "404", description = "An error occurred!",
                     content = @Content) })
     @GetMapping("/conversion")
+    @RateLimiter(name = "rateLimit")
     public ResponseEntity<Double> getConversionToCurrency(@RequestParam Currency from,
                                                           @RequestParam Currency to, @RequestParam @Positive(message = "Amount must be greater than 0 !") Double amount){
         return new ResponseEntity<>(exchangeService.convertToCurrency(from, to, amount), HttpStatus.OK);
@@ -85,6 +89,7 @@ public class ExchangeController {
             @ApiResponse(responseCode = "404", description = "An error occurred!",
                     content = @Content) })
     @GetMapping("/conversions")
+    @RateLimiter(name = "rateLimit")
     public ResponseEntity<Map<String, Double>> getConversionToCurrencies(@RequestParam Currency from,
                                                                          @RequestParam List<Currency> to, @RequestParam @Positive(message = "Amount must be greater than 0 !") Double amount){
         return new ResponseEntity<>(exchangeService.convertToCurrencies(from, to, amount), HttpStatus.OK);

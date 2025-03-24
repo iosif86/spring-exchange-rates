@@ -1,6 +1,7 @@
 package bv.group.exchangerates.controllers;
 
 import bv.group.exchangerates.exception.ExchangeNotFoundException;
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,7 @@ public class MvcExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<String> handleGenericException(MethodArgumentTypeMismatchException ex) {
+    public ResponseEntity<String> invalidCurrencyErrorHandler(MethodArgumentTypeMismatchException ex) {
         return new ResponseEntity<>("Invalid currency: " + ex.getValue(), HttpStatus.BAD_REQUEST);
     }
 
@@ -29,6 +30,11 @@ public class MvcExceptionHandler {
         List<String> errorsList = new ArrayList<>(ex.getConstraintViolations().size());
         ex.getConstraintViolations().forEach(error -> errorsList.add(error.getMessage()));
         return new ResponseEntity<>(errorsList, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler({ RequestNotPermitted.class })
+    public ResponseEntity<String> rateLimitExceededErrorHandler() {
+        return new ResponseEntity<>("Too many requests! Only 7 per minutes are allowed.", HttpStatus.TOO_MANY_REQUESTS);
     }
 
     @ExceptionHandler(Exception.class)
