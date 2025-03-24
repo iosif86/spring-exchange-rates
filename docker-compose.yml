@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  exchange-rates:
+    image: 'exchange-rates:latest'
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: exchange-rates-app
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./logs:/app/logs
