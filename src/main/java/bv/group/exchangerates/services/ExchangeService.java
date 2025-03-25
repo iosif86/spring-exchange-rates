@@ -1,16 +1,17 @@
 package bv.group.exchangerates.services;
 
+import bv.group.exchangerates.api.v1.model.Conversion;
+import bv.group.exchangerates.api.v1.model.Rate;
 import bv.group.exchangerates.api.v1.model.enums.Currency;
 
 import java.util.List;
-import java.util.Map;
 
 public interface ExchangeService {
-    Map<String, Double> getExchangeRate(Currency from, Currency to);
+    Rate getExchangeRate(Currency from, Currency to);
 
-    Map<String, Double> getExchangeRates(Currency from);
+    List<Rate> getExchangeRates(Currency from);
 
-    Double convertToCurrency(Currency from, Currency to, Double amount);
+    Conversion convertToCurrency(Currency from, Currency to, Double amount);
 
-    Map<String, Double> convertToCurrencies(Currency from, List<Currency> to, Double amount);
+    List<Conversion> convertToCurrencies(Currency from, List<Currency> to, Double amount);
 }

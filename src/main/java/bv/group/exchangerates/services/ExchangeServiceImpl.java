@@ -1,6 +1,8 @@
 package bv.group.exchangerates.services;
 
+import bv.group.exchangerates.api.v1.model.Conversion;
 import bv.group.exchangerates.api.v1.model.ConversionDTO;
+import bv.group.exchangerates.api.v1.model.Rate;
 import bv.group.exchangerates.api.v1.model.RateDTO;
 import bv.group.exchangerates.api.v1.model.enums.Currency;
 import bv.group.exchangerates.exception.ExchangeNotFoundException;
@@ -9,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -26,7 +29,7 @@ public class ExchangeServiceImpl implements ExchangeService{
     }
 
     @Override
-    public Map<String, Double> getExchangeRate(Currency from, Currency to) {
+    public Rate getExchangeRate(Currency from, Currency to) {
         log.info("ExchangeService : getExchangeRate is called");
         RateDTO rateDTO = restClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/live")
@@ -36,11 +39,13 @@ public class ExchangeServiceImpl implements ExchangeService{
         if (!Objects.requireNonNull(rateDTO).getSuccess()){
             throw new ExchangeNotFoundException(rateDTO.getError().toString());
         }
-        return rateDTO.getQuotes();
+        Map.Entry<String,Double> quote = rateDTO.getQuotes().entrySet().iterator().next();
+        Rate rate = Rate.builder().currencyPair(quote.getKey()).value(quote.getValue()).build();
+        return rate;
     }
 
     @Override
-    public Map<String, Double> getExchangeRates(Currency from) {
+    public List<Rate> getExchangeRates(Currency from) {
         log.info("ExchangeService : getExchangeRates is called");
         RateDTO rateDTO = restClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/live")
@@ -50,11 +55,17 @@ public class ExchangeServiceImpl implements ExchangeService{
         if (!Objects.requireNonNull(rateDTO).getSuccess()){
             throw new ExchangeNotFoundException(rateDTO.getError().toString());
         }
-        return rateDTO.getQuotes();
+        Rate rate;
+        List<Rate> rates = new ArrayList<>();
+        for (String currencyPair : rateDTO.getQuotes().keySet()) {
+            rate = Rate.builder().currencyPair(currencyPair).value(rateDTO.getQuotes().get(currencyPair)).build();
+            rates.add(rate);
+        }
+        return rates;
     }
 
     @Override
-    public Double convertToCurrency(Currency from, Currency to, Double amount) {
+    public Conversion convertToCurrency(Currency from, Currency to, Double amount) {
         log.info("ExchangeService : convertToCurrency is called");
         ConversionDTO conversionDTO = restClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/convert")
@@ -64,11 +75,12 @@ public class ExchangeServiceImpl implements ExchangeService{
         if (!Objects.requireNonNull(conversionDTO).getSuccess()){
             throw new ExchangeNotFoundException(conversionDTO.getError().toString());
         }
-        return conversionDTO.getResult();
+        Conversion conversion = Conversion.builder().from(from.name()).to(to.name()).amount(amount).result(conversionDTO.getResult()).build();
+        return conversion;
     }
 
     @Override
-    public Map<String, Double> convertToCurrencies(Currency from, List<Currency> to, Double amount) {
+    public List<Conversion> convertToCurrencies(Currency from, List<Currency> to, Double amount) {
         log.info("ExchangeService : convertToCurrencies is called");
         RateDTO rateDTO = restClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/live")
@@ -79,9 +91,15 @@ public class ExchangeServiceImpl implements ExchangeService{
         if (!Objects.requireNonNull(rateDTO).getSuccess()){
             throw new ExchangeNotFoundException(rateDTO.getError().toString());
         }
-        Map<String, Double> quotes = rateDTO.getQuotes();
-        return quotes.entrySet().stream().collect(Collectors.toMap(
-                Map.Entry::getKey,
-                e -> e.getValue()*amount));
+        Conversion conversion;
+        List<Conversion> conversions = new ArrayList<>();
+        int index = 0;
+        for (String currencyPair : rateDTO.getQuotes().keySet()) {
+            conversion = Conversion.builder().from(from.name()).to(to.get(index).name()).amount(amount)
+                    .result(rateDTO.getQuotes().get(currencyPair)*amount).build();
+            conversions.add(conversion);
+            index++;
+        }
+        return conversions;
     }
 }
