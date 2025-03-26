@@ -20,11 +20,13 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
@@ -46,7 +48,9 @@ class ExchangeServiceImplTest {
     @Test
     void Should_ReturnRate_When_GetExchangeRate_And_SuccessTrue() throws JsonProcessingException {
         String uri = buildExchangeRateUri();
-        RateDTO rateDTO = RateDTO.builder().success(true).quotes(Map.of("EURRON", 4.976977)).build();
+        LinkedHashMap<String, Double> quotes = new LinkedHashMap<>();
+        quotes.put("EURRON", 4.976977);
+        RateDTO rateDTO = RateDTO.builder().success(true).quotes(quotes).build();
         String response = objectMapper.writeValueAsString(rateDTO);
         // when
         this.server.expect(requestTo(uri)).andRespond(withSuccess(response, MediaType.APPLICATION_JSON));
@@ -72,7 +76,10 @@ class ExchangeServiceImplTest {
     @Test
     void Should_ReturnMultipleRates_When_GetExchangeRates_And_SuccessTrue() throws JsonProcessingException {
         String uri = buildExchangeRatesUri();
-        RateDTO rateDTO = RateDTO.builder().success(true).quotes(Map.of("EURAED", 3.996877, "EURAFN", 77.13611 )).build();
+        LinkedHashMap<String, Double> quotes = new LinkedHashMap<>();
+        quotes.put("EURAED", 3.996877);
+        quotes.put("EURAFN", 77.13611);
+        RateDTO rateDTO = RateDTO.builder().success(true).quotes(quotes).build();
         String response = objectMapper.writeValueAsString(rateDTO);
         // when
         this.server.expect(requestTo(uri)).andRespond(withSuccess(response, MediaType.APPLICATION_JSON));
@@ -122,7 +129,10 @@ class ExchangeServiceImplTest {
     @Test
     void Should_ReturnValueConversions_When_ConvertToCurrencies_And_SuccessTrue() throws JsonProcessingException {
         String uri = buildConvertToCurrenciesUri();
-        RateDTO rateDTO = RateDTO.builder().success(true).quotes(Map.of("EURRON", 4.976977, "EURAED", 3.996877 )).build();
+        LinkedHashMap<String, Double> quotes = new LinkedHashMap<>();
+        quotes.put("EURRON", 4.976977);
+        quotes.put("EURAED", 3.996877);
+        RateDTO rateDTO = RateDTO.builder().success(true).quotes(quotes).build();
         String response = objectMapper.writeValueAsString(rateDTO);
         // when
         this.server.expect(requestTo(uri)).andRespond(withSuccess(response, MediaType.APPLICATION_JSON));

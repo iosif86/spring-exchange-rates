@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Data
@@ -16,5 +17,5 @@ public class RateDTO {
     private String privacy;
     private Long timestamp;
     private String source;
-    private Map<String, Double> quotes;
+    private LinkedHashMap<String, Double> quotes;
 }

@@ -6,6 +6,7 @@ import bv.group.exchangerates.api.v1.model.Rate;
 import bv.group.exchangerates.api.v1.model.RateDTO;
 import bv.group.exchangerates.api.v1.model.enums.Currency;
 import bv.group.exchangerates.exception.ExchangeNotFoundException;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
@@ -111,6 +112,7 @@ public class ExchangeServiceImpl implements ExchangeService{
     }
 
     @CacheEvict(value = { "rate", "rates", "conversion", "conversions" }, allEntries = true)
+    @PostConstruct
     @Scheduled(fixedRateString = "${caching.spring.ttl}")
     public void clearCaches() {
         log.info("Caches are cleared");
