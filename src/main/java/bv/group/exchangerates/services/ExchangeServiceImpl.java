@@ -8,6 +8,9 @@ import bv.group.exchangerates.api.v1.model.enums.Currency;
 import bv.group.exchangerates.exception.ExchangeNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -29,6 +32,7 @@ public class ExchangeServiceImpl implements ExchangeService{
     }
 
     @Override
+    @Cacheable("rate")
     public Rate getExchangeRate(Currency from, Currency to) {
         log.info("ExchangeService : getExchangeRate is called");
         RateDTO rateDTO = restClient.get()
@@ -45,6 +49,7 @@ public class ExchangeServiceImpl implements ExchangeService{
     }
 
     @Override
+    @Cacheable("rates")
     public List<Rate> getExchangeRates(Currency from) {
         log.info("ExchangeService : getExchangeRates is called");
         RateDTO rateDTO = restClient.get()
@@ -65,6 +70,7 @@ public class ExchangeServiceImpl implements ExchangeService{
     }
 
     @Override
+    @Cacheable("conversion")
     public Conversion convertToCurrency(Currency from, Currency to, Double amount) {
         log.info("ExchangeService : convertToCurrency is called");
         ConversionDTO conversionDTO = restClient.get()
@@ -80,6 +86,7 @@ public class ExchangeServiceImpl implements ExchangeService{
     }
 
     @Override
+    @Cacheable("conversions")
     public List<Conversion> convertToCurrencies(Currency from, List<Currency> to, Double amount) {
         log.info("ExchangeService : convertToCurrencies is called");
         RateDTO rateDTO = restClient.get()
@@ -102,4 +109,11 @@ public class ExchangeServiceImpl implements ExchangeService{
         }
         return conversions;
     }
+
+    @CacheEvict(value = { "rate", "rates", "conversion", "conversions" }, allEntries = true)
+    @Scheduled(fixedRateString = "${caching.spring.ttl}")
+    public void clearCaches() {
+        log.info("Caches are cleared");
+    }
+
 }
