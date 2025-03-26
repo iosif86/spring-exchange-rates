@@ -1,8 +1,10 @@
 package bv.group.exchangerates.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestClientCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
 
@@ -12,7 +14,14 @@ public class RestClientConfig {
     private String apihost;
 
     @Bean
-    public RestClient getRestClient() {
-        return RestClient.builder().baseUrl(apihost).build();
+    public RestClient restClient(RestClient.Builder builder) {
+        return builder.build();
+    }
+
+    @Bean
+    public RestClientCustomizer restClientCustomizer() {
+        return (restClientBuilder) -> restClientBuilder
+                .requestFactory(new JdkClientHttpRequestFactory())
+                .baseUrl(apihost);
     }
 }
